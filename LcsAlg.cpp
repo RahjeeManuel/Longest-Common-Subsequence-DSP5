@@ -27,11 +27,13 @@ std::vector<std::string> LcsAlg::TwoStringsFromFile(std::string fileName) {
     std::ifstream inFile(fileName);
     if (inFile.is_open()) {
         std::string line;
+        //read first string
         if (std::getline(inFile, line)) {
             std::stringstream ss(line);
             ss >> line;
             s.push_back(line);
         }
+        //read second string
         if (std::getline(inFile, line)) {
             std::stringstream ss(line);
             ss >> line;
@@ -49,10 +51,12 @@ std::vector<std::string> LcsAlg::MultiStringsFromFile(std::string fileName) {
     std::ifstream inFile(fileName);
     if (inFile.is_open()) {
         std::string line;
+        //read number of strings to read
         if (std::getline(inFile, line)) {
             int numStrings = 0;
             std::stringstream ss(line);
             ss >> numStrings;
+            //read each string that was specified
             while(numStrings > 0 && std::getline(inFile, line)) {
                 std::stringstream ss(line);
                 ss >> line;
@@ -70,29 +74,35 @@ std::vector<std::string> LcsAlg::MultiStringsFromFile(std::string fileName) {
 std::string LcsAlg::GetLCS(std::string a, std::string b) {
     int m = a.length() + 1;
     int n = b.length() + 1;
-    int c[m][n];
+    //pointer array in-case of large strings
+    int **c = new int*[m];
+    for(int i = 0; i < m; i++) {
+        c[i] = new int[n];
+    }
+    //fill first row/columns with 0s
     for (int i = 0; i < m; i++) {
         c[i][0] = 0;
     }
     for (int i = 0; i < n; i++) {
         c[0][i] = 0;
     }
+    //logic to fill matrix
     for (int i = 1; i < m; i++) {
         for (int j = 1; j < n; j++) {
-            if (i == 0 || j == 0) {
-                c[i][j] = 0;
-            } else if (a[i - 1] == b[j - 1]) {
+            if (a[i - 1] == b[j - 1]) {
                 c[i][j] = c[i - 1][j - 1] + 1;
             } else {
                 c[i][j] = GetMax(c[i - 1][j], c[i][j - 1]);
             }
         }
     }
+    //initialize char array
     int i = a.length();
     int j = b.length();
     int index = c[i][j];
     char lcs[index + 1];
     lcs[index] = '\0';
+    //traverse the matrix to fill the char array
     while (i > 0 && j > 0) {
         if (a[i - 1] == b[j - 1]) {
             lcs[index - 1] = a[i - 1];
@@ -105,10 +115,16 @@ std::string LcsAlg::GetLCS(std::string a, std::string b) {
             j--;
         } 
     }
+    //clean up
+    for(int i = 0; i < m; i++) {
+        delete [] c[i];
+    }
+    delete [] c;
     return lcs;
 }
 std::vector<std::vector<char>> LcsAlg::GetSimilarityMatrix(std::vector<std::string> s) {
     std::vector<std::vector<char>> c;
+    //fill matrix with -'s
     for (int i = 0; i < s.size(); i++) {
         std::vector<char> v;
         for (int j = 0; j < s.size(); j++) {
@@ -116,6 +132,7 @@ std::vector<std::vector<char>> LcsAlg::GetSimilarityMatrix(std::vector<std::stri
         }
         c.push_back(v);
     }
+    //traverse the corner of the matrix and fill with char similarities
     for (int i = 0; i < s.size(); i++) {
         for (int j = i + 1; j < s.size(); j++) {
             c.at(i).at(j) = GetSimilarity(s.at(i), s.at(j));
